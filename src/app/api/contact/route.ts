@@ -12,39 +12,24 @@ type ContactPayload = {
   message?: string;
 };
 
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+const DEFAULT_TEMPLATE_ID = "new-contact-submission";
 
-function buildEmailHtml(data: Required<ContactPayload>): string {
-  const rows = [
-    ["Name", data.name],
-    ["Email", data.email],
-    ["Company", data.company || "—"],
-    ["Project Type", data.projectType],
-    ["Timeline", data.timeline || "—"],
-  ];
-
-  const tableRows = rows
-    .map(
-      ([label, value]) =>
-        `<tr><td style="padding:8px 12px;color:#888;font-size:13px;vertical-align:top;">${label}</td><td style="padding:8px 12px;color:#111;font-size:14px;">${escapeHtml(value)}</td></tr>`
-    )
-    .join("");
-
-  return `
-    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;">
-      <h2 style="color:#111;font-size:20px;margin:0 0 16px;">New project inquiry</h2>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">${tableRows}</table>
-      <p style="color:#888;font-size:13px;margin:0 0 8px;">Project description</p>
-      <p style="color:#111;font-size:14px;line-height:1.6;white-space:pre-wrap;margin:0;">${escapeHtml(data.message)}</p>
-    </div>
-  `;
+function buildTemplateVariables(data: {
+  name: string;
+  email: string;
+  company: string;
+  projectType: string;
+  timeline: string;
+  message: string;
+}) {
+  return {
+    CONTACT_NAME: data.name,
+    CONTACT_EMAIL: data.email,
+    COMPANY: data.company || "—",
+    PROJECT_TYPE: data.projectType,
+    TIMELINE: data.timeline || "—",
+    MESSAGE: data.message,
+  };
 }
 
 export async function POST(request: Request) {
@@ -57,6 +42,8 @@ export async function POST(request: Request) {
 
   const toEmail = process.env.CONTACT_TO_EMAIL;
   const fromEmail = process.env.CONTACT_FROM_EMAIL;
+  const templateId =
+    process.env.RESEND_CONTACT_TEMPLATE_ID?.trim() || DEFAULT_TEMPLATE_ID;
 
   if (!toEmail || !fromEmail) {
     return NextResponse.json(
@@ -91,22 +78,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please enter a valid email." }, { status: 400 });
   }
 
-  const payload: Required<ContactPayload> = {
-    name,
-    email,
-    company,
-    projectType,
-    timeline,
-    message,
-  };
-
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { error } = await resend.emails.send({
     from: fromEmail,
     to: toEmail,
     replyTo: email,
     subject: `New project inquiry from ${name}`,
-    html: buildEmailHtml(payload),
+    template: {
+      id: templateId,
+      variables: buildTemplateVariables({
+        name,
+        email,
+        company,
+        projectType,
+        timeline,
+        message,
+      }),
+    },
   });
 
   if (error) {
