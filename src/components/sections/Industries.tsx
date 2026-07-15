@@ -47,10 +47,12 @@ export default function Industries() {
                 variant={variants[i % variants.length]}
               >
                 <div className="premium-card group p-6 md:p-7 flex flex-col items-center text-center cursor-default">
-                  <div className="premium-card-icon w-11 h-11 rounded-[var(--radius-md)] flex items-center justify-center mb-4">
+                  <div
+                    className={`premium-card-icon w-11 h-11 rounded-[var(--radius-md)] flex items-center justify-center mb-4 transition-all duration-300 ${industry.iconWrapClass}`}
+                  >
                     <Icon
                       size={20}
-                      className="text-white/55 group-hover:text-white transition-colors duration-300"
+                      className={`transition-colors duration-300 ${industry.iconClass}`}
                       strokeWidth={1.5}
                     />
                   </div>

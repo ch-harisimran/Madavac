@@ -620,11 +620,8 @@ select:focus {
 }
 
 .premium-card-icon {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid transparent;
   transition:
-    background-color 0.45s ease,
-    border-color 0.45s ease,
     box-shadow 0.45s ease,
     transform 0.45s cubic-bezier(0.21, 0.47, 0.32, 0.98);
 }
