@@ -43,3 +43,5 @@ Thumbs.db
 
 .cursor
 
+# Google Search Console verification file (use GOOGLE_SITE_VERIFICATION env instead)
+public/google*.html
